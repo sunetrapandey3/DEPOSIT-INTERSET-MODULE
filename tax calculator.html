@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compound Interest Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      background-color: #003366;
+      color: #fff;
+      padding: 1rem 1rem; /* Reduced padding */
+      text-align: center;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    header img {
+      height: 70px; /* Reduced logo size */
+      max-width: 100%;
+      margin-bottom: 5px;
+    }
+
+    header h1 {
+      font-size: 1.5rem; /* Slightly smaller heading */
+      margin: 0;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 600px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-top: 5px solid #f00509;
+    }
+
+    h2 {
+      text-align: center;
+      color: #003366;
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.5rem;
+      font-weight: bold;
+      color: #003366;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #003366;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #002244;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      border-left: 5px solid #003366;
+    }
+
+    .result p {
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    footer {
+      background-color: #003366;
+      color: #fff;
+      text-align: center;
+      padding: 1rem 0;
+      margin-top: 2rem;
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <img src="https://logos-world.net/wp-content/uploads/2020/11/Bank-of-India-Logo.png" alt="Bank of India Logo" />
+      <h1>Compound Interest Calculator</h1>
+    </div>
+  </header>
+  <main>
+    <h2>DEPOSIT INTEREST MODULE</h2>
+    <form id="calculator-form">
+      <label for="principal">Principal Amount (₹):</label>
+      <input type="number" id="principal" required />
+
+      <label for="rate">Annual Interest Rate (%):</label>
+      <input type="number" id="rate" step="0.01" required />
+
+      <label for="time">Time (Years):</label>
+      <input type="number" id="time" step="0.1" required />
+
+      <button type="button" onclick="calculateCompoundInterest()">Calculate</button>
+    </form>
+    <div id="result" class="result" style="display: none;"></div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Bank of India - Compound Interest Calculator</p>
+  </footer>
+
+  <script>
+    function formatIndianNumber(x) {
+      const parts = x.toString().split(".");
+      let integerPart = parts[0];
+      const decimalPart = parts.length > 1 ? "." + parts[1] : "";
+
+      const lastThree = integerPart.slice(-3);
+      const otherNumbers = integerPart.slice(0, -3);
+      if (otherNumbers !== "") {
+        integerPart = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree;
+      }
+
+      return integerPart + decimalPart;
+    }
+
+    function numberToWords(num) {
+      const ones = [
+        '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
+        'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
+        'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+        'Seventeen', 'Eighteen', 'Nineteen'
+      ];
+      const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+      if (num === 0) return 'Zero';
+
+      function convertToWords(n) {
+        if (n < 20) return ones[n];
+        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+        if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + convertToWords(n % 100) : "");
+        if (n < 100000) return convertToWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + convertToWords(n % 1000) : "");
+        if (n < 10000000) return convertToWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + convertToWords(n % 100000) : "");
+        return convertToWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + convertToWords(n % 10000000) : "");
+      }
+
+      const [whole, decimal] = num.toFixed(2).split(".");
+      let words = convertToWords(parseInt(whole));
+      if (decimal !== "00") {
+        words += ` and ${convertToWords(parseInt(decimal))} Paise`;
+      }
+      return words + " Only";
+    }
+
+    function calculateCompoundInterest() {
+      const principal = parseFloat(document.getElementById('principal').value);
+      const annualRate = parseFloat(document.getElementById('rate').value);
+      const timeYears = parseFloat(document.getElementById('time').value);
+
+      if (isNaN(principal) || isNaN(annualRate) || isNaN(timeYears)) {
+        alert('Please enter valid inputs.');
+        return;
+      }
+
+      const ratePerQuarter = annualRate / 4 / 100;
+      const totalQuarters = Math.floor(timeYears * 4);
+      let amount = principal;
+      let amountWithoutTax = principal;
+
+      for (let quarter = 1; quarter <= totalQuarters; quarter++) {
+        const interest = amount * ratePerQuarter;
+        amount += interest;
+
+        const interestWithoutTax = amountWithoutTax * ratePerQuarter;
+        amountWithoutTax += interestWithoutTax;
+
+        if (quarter % 2 === 0) {
+          const gain = amount - principal;
+          const tax = gain * 0.10;
+          amount -= tax;
+        }
+      }
+
+      const formattedWithTDS = formatIndianNumber(amount.toFixed(2));
+      const formattedWithoutTDS = formatIndianNumber(amountWithoutTax.toFixed(2));
+      const inWordsWithTDS = numberToWords(amount);
+      const inWordsWithoutTDS = numberToWords(amountWithoutTax);
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <p><strong>Maturity Amount (after TDS):</strong> ₹${formattedWithTDS} <br><small>(${inWordsWithTDS})</small></p>
+        <p><strong>Maturity Amount Without TDS:</strong> ₹${formattedWithoutTDS} <br><small>(${inWordsWithoutTDS})</small></p>
+      `;
+      resultDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
+
+
+
+
